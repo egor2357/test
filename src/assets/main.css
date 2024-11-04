@@ -1,0 +1,46 @@
+.p-tree-node-content {
+    background-color: #d8eef5;
+    
+    
+}
+.p-tree {
+    background-color: #d8eef5;
+
+}
+.p-tree-root {
+    height: 100% !important;
+}
+
+.p-tree-node-selected {
+    color: black !important;;
+    background-color: #97def3 !important;
+  
+
+   
+   
+}
+.p-tree-node-content:hover {
+    transition: all 0.3s ease;
+    
+
+}
+
+
+.p-card-title {
+    font-size: 18px !important;
+}
+
+.p-card-body {
+    height: 200px;
+}
+
+.p-card-caption {
+    height: 150px;
+}
+
+.p-inputtext {
+width: 60%;
+}
+.p-datepicker{
+    width: 60%;
+}
