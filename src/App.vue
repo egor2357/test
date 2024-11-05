@@ -1,17 +1,12 @@
 <script>
 import { data } from '@/components/data/data.js';
+import { getStaffList } from '@/utils/common';
 import { v4 as uuidv4 } from 'uuid';
 
 export default {
   computed: {
-    computedOfficerList() {
-      if (this.selectedKey) {
-        this.officerList = [];
-        this.findOfficers(this.tree, Object.keys(this.selectedKey)[0]);
-      } else {
-        this.officerList = [];
-      }
-      return this.officerList;
+    staffList(){
+      return getStaffList(this.selectedUnit);
     },
     buttonView() {
       if (this.selectedKey) {
@@ -25,7 +20,8 @@ export default {
   },
   data() {
     return {
-      tree: data,
+      unitNodes: data,
+      selectedUnit: null,
       selectedKey: '',
       newOffcier: {
         name: '',
@@ -55,7 +51,7 @@ export default {
         {
           label: 'Удалить',
           command: () => {
-            this.deleteNode(this.tree);
+            this.deleteNode(this.unitNodes);
           },
         },
       ],
@@ -91,7 +87,6 @@ export default {
         this.hoveredNode = '';
       }
     },
-
     officerSquad(array, id) {
       for (let item of array) {
         for (let el of item.data) {
@@ -161,34 +156,7 @@ export default {
         startWork: '',
       };
     },
-    findOfficers(array, key) {
-      for (let item of array) {
-        if (item.key === key) {
-          item.data.forEach((el) => {
-            this.officerList.push(el);
-          });
-          if (Array.isArray(item.children)) {
-            this.findOfficersInChildren(item.children);
-          }
-          return;
-        }
-
-        if (Array.isArray(item.children)) {
-          this.findOfficers(item.children, key);
-        }
-      }
-    },
-
-    findOfficersInChildren(children) {
-      for (let child of children) {
-        child.data.forEach((el) => {
-          this.officerList.push(el);
-        });
-        if (Array.isArray(child.children)) {
-          this.findOfficersInChildren(child.children);
-        }
-      }
-    },
+    
     openContextMenuTree(event) {
       this.isContextMenuOpen = true;
       this.$refs.menu.show(event);
@@ -197,7 +165,7 @@ export default {
       this.isContextMenuOpen = false;
     },
     selectNode(node) {
-      this.selectedKey = { [node.key]: true };
+      this.selectedUnit = node;
     },
 
     deleteNode(array) {
@@ -301,7 +269,7 @@ export default {
       }
     },
     deleteOfficer() {
-      this.deleteOfficerFromTreeData(this.selectedOfficer.id, this.tree);
+      this.deleteOfficerFromTreeData(this.selectedOfficer.id, this.unitNodes);
       this.visibleModalOfficerRedact = false;
     },
     deleteOfficerFromTreeData(id, array) {
@@ -337,57 +305,24 @@ export default {
           @click="visibleModalAdministration = true"
           severity="info"
         />
-
-        <Tree
-          :value="tree"
-          class="w-full md:w-[30rem]"
-          selectionMode="single"
-          v-model:selectionKeys="selectedKey"
-        >
-          <template #default="slotProps">
-            <div
-              class="tree-item"
-              @mouseover="onNodeMouseEnter(slotProps.node)"
-              @mouseleave="onNodeMouseLeave"
-            >
-              <b>{{ slotProps.node.label }}</b>
-              <img
-                alt="dropdown icon"
-                src="./assets/burger.svg"
-                class="burger"
-                v-if="hoveredNode && hoveredNode.key === slotProps.node.key"
-                @click="
-                  selectNode(slotProps.node);
-                  openContextMenuTree($event);
-                "
-              />
-
-              <!-- Контекстное меню дерева -->
-              <ContextMenu
-                ref="menu"
-                :model="contextMenuTreeItems"
-                @hide="isContextMenuOpen = false"
-              />
-              <!-- Конец контекстного меню -->
-            </div>
-          </template>
-        </Tree>
+      <Tree v-model:selectionKeys="selectedKey" :value="unitNodes" selectionMode="single" class="w-full md:w-[30rem]" @node-select="selectNode">
+      </Tree>
       </div>
       <div class="right-wrapper">
         <div class="info">
           <Message
             severity="info"
             class="info-item"
-            v-if="computedOfficerList.length != 0"
-            >Количество сотрудников: {{ computedOfficerList.length }}</Message
+            v-if="staffList.length"
+            >Количество сотрудников: {{ staffList.length }}</Message
           >
           <Message
             severity="info"
             class="info-item"
-            v-if="computedOfficerList.length != 0"
-            >Средний возраст: {{ getAverageAge(computedOfficerList) }}
+            v-if="staffList.length"
+            >Средний возраст: {{ getAverageAge(staffList) }}
             {{
-              declOfNum(getAverageAge(computedOfficerList), [
+              declOfNum(getAverageAge(staffList), [
                 'год',
                 'года',
                 'лет',
@@ -397,11 +332,11 @@ export default {
           <Message
             severity="info"
             class="info-item"
-            v-if="computedOfficerList.length != 0"
+            v-if="staffList.length"
             >Средний стаж работы в подразделении:
-            {{ getAverageWork(computedOfficerList) }}
+            {{ getAverageWork(staffList) }}
             {{
-              declOfNum(getAverageWork(computedOfficerList), [
+              declOfNum(getAverageWork(staffList), [
                 'год',
                 'года',
                 'лет',
@@ -418,7 +353,7 @@ export default {
         <div class="officers-list">
           <div
             v-if="selectedKey"
-            v-for="item in computedOfficerList"
+            v-for="item in staffList"
             class="card-officer"
           >
             <Card
@@ -434,11 +369,11 @@ export default {
                 />
               </template>
               <template #title>{{ item.name }}</template>
-              <template #subtitle>{{ officerPost(tree, item.id) }}</template>
+              <template #subtitle>{{ officerPost(unitNodes, item.id) }}</template>
 
               <template #content>
                 <p class="m-0">
-                  {{ officerSquad(tree, item.id) }}
+                  {{ officerSquad(unitNodes, item.id) }}
                 </p>
                 <p class="m-0">
                   День рождения:
@@ -528,7 +463,7 @@ export default {
             <Button
               type="button"
               label="Сохранить"
-              @click="addOfficer(tree)"
+              @click="addOfficer(unitNodes)"
             ></Button>
           </div>
         </div>
@@ -574,7 +509,7 @@ export default {
             <Button
               type="button"
               label="Сохранить"
-              @click="addNode(tree)"
+              @click="addNode(unitNodes)"
             ></Button>
           </div>
         </div>
@@ -619,7 +554,7 @@ export default {
             <Button
               type="button"
               label="Сохранить"
-              @click="addAdmistration(tree)"
+              @click="addAdmistration(unitNodes)"
             ></Button>
           </div>
         </div>
@@ -711,7 +646,7 @@ export default {
             <Button
               type="button"
               label="Сохранить"
-              @click="redactOfficer(tree)"
+              @click="redactOfficer(unitNodes)"
             ></Button>
           </div>
         </div>
