@@ -6,8 +6,7 @@
 </template>
 <style>
 .footer {
-  width: 100%;
-  height: 100px;
+
   background-color: #6ad7f8;
   display: flex;
   align-items: center;

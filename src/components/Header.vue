@@ -6,13 +6,10 @@
 </template>
 <style>
 .header {
-  width: 100%;
-  height: 100px;
   background-color: #6ad7f8;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
 }
 .header-text {
   font-weight: bold;

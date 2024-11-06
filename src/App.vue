@@ -157,10 +157,6 @@ export default {
       };
     },
     
-    openContextMenuTree(event) {
-      this.isContextMenuOpen = true;
-      this.$refs.menu.show(event);
-    },
     closeContextMenuTree() {
       this.isContextMenuOpen = false;
     },
@@ -287,10 +283,10 @@ export default {
       }
       return false;
     },
-    openContextMenuTree(event) {
+    unitMenuClick(event, node){
       this.isContextMenuOpen = true;
       this.$refs.menu.show(event);
-    },
+    }
   },
 };
 </script>
@@ -305,8 +301,16 @@ export default {
           @click="visibleModalAdministration = true"
           severity="info"
         />
-      <Tree v-model:selectionKeys="selectedKey" :value="unitNodes" selectionMode="single" class="w-full md:w-[30rem]" @node-select="selectNode">
+      <Tree v-model:selectionKeys="selectedKey" :value="unitNodes" selectionMode="single" class="w-full md:w-[30rem]" @nodeSelect="selectNode" @nodeUnselect="selectedUnit = null">
+        <template #nodeicon="slotProps">
+          <div class="tree-node__menu-icon" @click.stop="unitMenuClick($event, slotProps.node)"></div>
+        </template>
       </Tree>
+      <ContextMenu
+        ref="menu"
+        :model="contextMenuTreeItems"
+        @hide="isContextMenuOpen = false"
+      />     
       </div>
       <div class="right-wrapper">
         <div class="info">
@@ -657,17 +661,28 @@ export default {
   <Footer />
 </template>
 
-<style scoped>
+<style>
+
+html, body{
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#app{
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .wrapper {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
+  display: flex;
+  flex: 1;
 }
 .right-wrapper {
-  grid-column-start: 3;
-  grid-column-end: -1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .card-officer {
@@ -688,11 +703,11 @@ export default {
 }
 
 .officers-list {
-  margin-top: 8px;
+  flex: 1;
+  overflow: auto;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-
   justify-content: space-evenly;
   gap: 40px;
   margin-top: 20px;
@@ -701,6 +716,24 @@ export default {
 .tree-item {
   display: flex;
   flex-direction: row;
+}
+
+.p-tree-node-content{
+  position: relative;
+}
+
+.tree-node__menu-icon{
+  background: url('./assets/burger.svg');
+  width: 16px;
+  height: 16px;
+  position: absolute;
+  right: 10px;
+  display: none;
+  margin: 5px;
+}
+
+.p-tree-node-content:hover .tree-node__menu-icon{
+  display: block;
 }
 
 .burger {
@@ -732,11 +765,13 @@ export default {
   justify-content: space-between;
 }
 .wrapper-main {
-  padding: 0 20px;
-  min-height: 100vh;
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  overflow: hidden;
 }
 .wrapper-tree {
-  grid-column-start: 1;
-  grid-column-end: 3;
+  width: 400px;
+  overflow: auto;
 }
 </style>
